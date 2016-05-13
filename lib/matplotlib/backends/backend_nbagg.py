@@ -157,6 +157,10 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
         self._uid = uuid().hex
         self.on_msg(self._handle_message)
 
+        self.layout.observe(self._on_width_change, 'width')
+
+        self._dpi = self.figure.get_dpi()
+
     def _handle_message(self, object, message, buffers):
         # The 'supports_binary' message is relevant to the
         # websocket itself.  The other messages get passed along
@@ -174,6 +178,11 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
             self.send_json('refresh')
         else:
             self.manager.handle_json(message)
+
+    def _on_width_change(self, ch):
+        w, h = float(ch['new']) / self._dpi, self.figure.get_figheight()
+
+        self.figure.set_size_inches(w, h, forward = True)
 
     def send_json(self, content):
         self.send({'data': json.dumps(content)})
